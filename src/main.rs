@@ -49,4 +49,36 @@ fn main() {
     println!("input_length: {}", input_length);
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::read_compact_size;
+
+    #[test]
+    fn test_read_compact_size() {
+        let mut bytes = [1_u8].as_slice();
+        let count = read_compact_size(&mut bytes);
+        assert_eq!(count, 1);
+        assert_ne!(count, 2);
+
+        let mut bytes = [253_u8, 0 ,1].as_slice();
+        let count = read_compact_size(&mut bytes);
+        assert_eq!(count, 256);
+
+        let mut bytes = [254_u8, 0, 0, 0, 1].as_slice();
+        let count = read_compact_size(&mut bytes);
+        assert_eq!(count, 256_u64.pow(3));
+
+        let mut bytes = [255_u8, 0, 0, 0, 0, 0, 0, 0, 1].as_slice();
+        let count = read_compact_size(&mut bytes);
+        assert_eq!(count, 256_u64.pow(7));
+
+        let hex = "fd204e";
+        let decoded = hex::decode(hex).unwrap();
+        let mut bytes_slice = decoded.as_slice();
+        let count = read_compact_size(&mut bytes_slice);
+        let excepted_count = 20_000_u64;
+        assert_eq!(count, excepted_count);
+    }
+}
+
 
